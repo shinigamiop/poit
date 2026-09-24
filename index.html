@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результат теста</title>
+    <!-- Подключаем Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f9; }
+        .chart-container { width: 600px; height: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <canvas id="compassChart"></canvas>
+    </div>
+
+    <script>
+        // --- 1. Чтение параметров из URL ---
+        // Simpoll пришлёт что-то вроде ?econ=5&soc=-3&answers=...
+        const params = new URLSearchParams(window.location.search);
+        
+        // Пока здесь стоят тестовые значения. 
+        // ПОСЛЕ ПЕРВОГО ТЕСТА замените их на реальные названия ключей от Simpoll.
+        const economicScore = parseFloat(params.get('econ')) || 0; 
+        const socialScore = parseFloat(params.get('soc')) || 0;
+
+        // --- 2. Отрисовка графика ---
+        const ctx = document.getElementById('compassChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'scatter', // Точечная диаграмма — идеально для одной позиции
+            data: {
+                datasets: [{
+                    label: 'Ваша позиция',
+                    data: [{ x: economicScore, y: socialScore }],
+                    backgroundColor: 'rgba(54, 162, 235, 0.9)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    pointRadius: 12 // Размер точки
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        min: -10, max: 10,
+                        title: { display: true, text: 'Экономика (Лево ← → Право)', font: { size: 14 } },
+                        grid: { color: ctx => ctx.tick.value === 0 ? '#333' : '#e0e0e0', lineWidth: ctx => ctx.tick.value === 0 ? 2 : 1 }
+                    },
+                    y: {
+                        min: -10, max: 10,
+                        title: { display: true, text: 'Социальная (Авторитаризм ← → Либертарианство)', font: { size: 14 } },
+                        grid: { color: ctx => ctx.tick.value === 0 ? '#333' : '#e0e0e0', lineWidth: ctx => ctx.tick.value === 0 ? 2 : 1 }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+</body>
+</html>
