@@ -3,58 +3,449 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Результат теста</title>
-    <!-- Подключаем Chart.js -->
+    <title>Политический компас — результат</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f9; }
-        .chart-container { width: 600px; height: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        :root {
+            --bg: #0f1117;
+            --card: #1a1d27;
+            --text: #e6e8ee;
+            --muted: #8b90a0;
+            --accent: #4a9eff;
+            --grid: #2a2e3d;
+            --axis: #555b70;
+            --red: #e5484d;
+            --green: #30a46c;
+            --yellow: #f5a623;
+            --purple: #8e4ec6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px;
+            line-height: 1.5;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            max-width: 720px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #4a9eff, #8e4ec6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+            width: 100%;
+            max-width: 1100px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--grid);
+        }
+
+        .chart-card {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            padding: 16px;
+        }
+
+        .chart-card canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .result-card h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .quadrant-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .coords {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .coord-item {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1px solid var(--grid);
+        }
+
+        .coord-item .label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .coord-item .value {
+            font-size: 22px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .coord-item .value.positive { color: var(--accent); }
+        .coord-item .value.negative { color: var(--red); }
+        .coord-item .value.neutral  { color: var(--muted); }
+
+        .description {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.6;
+            padding-top: 16px;
+            border-top: 1px solid var(--grid);
+        }
+
+        .description strong {
+            color: var(--text);
+        }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+
+        .btn:hover { opacity: 0.9; }
+        .btn:active { transform: scale(0.98); }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--grid);
+        }
+
+        .footer {
+            margin-top: 32px;
+            color: var(--muted);
+            font-size: 13px;
+            text-align: center;
+            max-width: 720px;
+        }
+
+        .error-msg {
+            background: rgba(229, 72, 77, 0.1);
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .error-msg.visible { display: block; }
     </style>
 </head>
 <body>
-    <div class="chart-container">
-        <canvas id="compassChart"></canvas>
+
+    <div class="header">
+        <h1>Политический компас</h1>
+        <p>Ваши координаты по двум осям: экономической и социальной</p>
+    </div>
+
+    <div class="layout">
+        <!-- График -->
+        <div class="card chart-card">
+            <canvas id="compassChart"></canvas>
+        </div>
+
+        <!-- Результат -->
+        <div class="card result-card">
+            <h2>Ваш результат</h2>
+
+            <div class="error-msg" id="errorMsg"></div>
+
+            <div id="quadrantBadge" class="quadrant-badge"></div>
+
+            <div class="coords">
+                <div class="coord-item">
+                    <div class="label">Экономика</div>
+                    <div class="value" id="econValue">0</div>
+                </div>
+                <div class="coord-item">
+                    <div class="label">Социальная</div>
+                    <div class="value" id="socValue">0</div>
+                </div>
+            </div>
+
+            <div class="description" id="description"></div>
+
+            <div class="actions">
+                <a href="#" class="btn btn-secondary" id="restartBtn">Пройти заново</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Тест носит ознакомительный характер. 10 вопросов дают грубую, но показательную оценку.
     </div>
 
     <script>
-        // --- 1. Чтение параметров из URL ---
-        // Simpoll пришлёт что-то вроде ?econ=5&soc=-3&answers=...
-        const params = new URLSearchParams(window.location.search);
-        
-        // Пока здесь стоят тестовые значения. 
-        // ПОСЛЕ ПЕРВОГО ТЕСТА замените их на реальные названия ключей от Simpoll.
-        const economicScore = parseFloat(params.get('econ')) || 0; 
-        const socialScore = parseFloat(params.get('soc')) || 0;
+        // ===== 1. МАТРИЦА БАЛЛОВ (под перемешанный порядок) =====
+        // Варианты: 0="Полностью согласен", 1="Скорее согласен", 2="Нейтрально", 3="Скорее не согласен", 4="Полностью не согласен"
+        const questions = [
+            { q: 1,  axis: 'x', scores: [-2, -1,  0,  1,  2] },
+            { q: 2,  axis: 'y', scores: [ 2,  1,  0, -1, -2] },
+            { q: 3,  axis: 'x', scores: [ 2,  1,  0, -1, -2] },
+            { q: 4,  axis: 'y', scores: [-2, -1,  0,  1,  2] },
+            { q: 5,  axis: 'x', scores: [-2, -1,  0,  1,  2] },
+            { q: 6,  axis: 'y', scores: [ 2,  1,  0, -1, -2] },
+            { q: 7,  axis: 'x', scores: [ 2,  1,  0, -1, -2] },
+            { q: 8,  axis: 'y', scores: [-2, -1,  0,  1,  2] },
+            { q: 9,  axis: 'x', scores: [ 2,  1,  0, -1, -2] },
+            { q: 10, axis: 'y', scores: [ 2,  1,  0, -1, -2] }
+        ];
 
-        // --- 2. Отрисовка графика ---
+        // ===== 2. ЧТЕНИЕ ОТВЕТОВ ИЗ URL =====
+        function getAnswer(qNum) {
+            const params = new URLSearchParams(window.location.search);
+            const key = `sp_answers[${qNum}]`;
+            const val = params.get(key);
+            if (val === null) return 2; // нет ответа → нейтрально
+            return parseInt(val, 10);
+        }
+
+        // Проверка: пришли ли вообще данные
+        function hasData() {
+            const params = new URLSearchParams(window.location.search);
+            for (let i = 1; i <= 10; i++) {
+                if (params.has(`sp_answers[${i}]`)) return true;
+            }
+            return false;
+        }
+
+        // ===== 3. ПОДСЧЁТ БАЛЛОВ =====
+        let econScore = 0;
+        let socScore = 0;
+
+        questions.forEach(item => {
+            const answerIndex = getAnswer(item.q);
+            const points = item.scores[answerIndex] || 0;
+            if (item.axis === 'x') econScore += points;
+            else socScore += points;
+        });
+
+        // ===== 4. ОПРЕДЕЛЕНИЕ КВАДРАНТА =====
+        function getQuadrant(x, y) {
+            if (x >= 0 && y >= 0) return {
+                name: 'Правый авторитарист',
+                color: '#e5484d',
+                desc: 'Вы сочетаете рыночную экономику с сильной государственной вертикалью. Классические примеры: консервативные партии, религиозные правые.'
+            };
+            if (x >= 0 && y < 0) return {
+                name: 'Правый либертарианец',
+                color: '#f5a623',
+                desc: 'Вы за свободный рынок и минимальное вмешательство государства в личную жизнь. Ближе всего к классическому либертарианству.'
+            };
+            if (x < 0 && y >= 0) return {
+                name: 'Левый авторитарист',
+                color: '#8e4ec6',
+                desc: 'Вы за государственное регулирование экономики и сильную власть. Исторически близко к социализму авторитарного толка.'
+            };
+            return {
+                name: 'Левый либертарианец',
+                color: '#30a46c',
+                desc: 'Вы за равенство и социальную справедливость при максимальной личной свободе. Ближе всего к анархо-коммунизму или демократическому социализму.'
+            };
+        }
+
+        const quadrant = getQuadrant(econScore, socScore);
+
+        // ===== 5. ОБНОВЛЕНИЕ UI =====
+        const econEl = document.getElementById('econValue');
+        const socEl = document.getElementById('socValue');
+
+        econEl.textContent = (econScore > 0 ? '+' : '') + econScore;
+        socEl.textContent = (socScore > 0 ? '+' : '') + socScore;
+
+        econEl.className = 'value ' + (econScore > 0 ? 'positive' : econScore < 0 ? 'negative' : 'neutral');
+        socEl.className = 'value ' + (socScore > 0 ? 'positive' : socScore < 0 ? 'negative' : 'neutral');
+
+        const badge = document.getElementById('quadrantBadge');
+        badge.textContent = quadrant.name;
+        badge.style.background = quadrant.color + '22';
+        badge.style.color = quadrant.color;
+        badge.style.border = '1px solid ' + quadrant.color + '55';
+
+        document.getElementById('description').innerHTML =
+            `<strong>${quadrant.name}.</strong> ${quadrant.desc}`;
+
+        if (!hasData()) {
+            const err = document.getElementById('errorMsg');
+            err.textContent = 'Данные теста не найдены. Похоже, вы открыли страницу напрямую, без прохождения теста.';
+            err.classList.add('visible');
+        }
+
+        // ===== 6. ГРАФИК =====
         const ctx = document.getElementById('compassChart').getContext('2d');
+
+        // Фон квадрантов
+        const quadrantPlugin = {
+            id: 'quadrantBg',
+            beforeDraw(chart) {
+                const { ctx, chartArea, scales } = chart;
+                if (!chartArea) return;
+
+                const x0 = scales.x.getPixelForValue(0);
+                const y0 = scales.y.getPixelForValue(0);
+
+                ctx.save();
+                ctx.globalAlpha = 0.08;
+
+                // Правый верх — красный
+                ctx.fillStyle = '#e5484d';
+                ctx.fillRect(x0, chartArea.top, chartArea.right - x0, y0 - chartArea.top);
+
+                // Правый низ — жёлтый
+                ctx.fillStyle = '#f5a623';
+                ctx.fillRect(x0, y0, chartArea.right - x0, chartArea.bottom - y0);
+
+                // Левый верх — фиолетовый
+                ctx.fillStyle = '#8e4ec6';
+                ctx.fillRect(chartArea.left, chartArea.top, x0 - chartArea.left, y0 - chartArea.top);
+
+                // Левый низ — зелёный
+                ctx.fillStyle = '#30a46c';
+                ctx.fillRect(chartArea.left, y0, x0 - chartArea.left, chartArea.bottom - y0);
+
+                ctx.restore();
+            }
+        };
+
         new Chart(ctx, {
-            type: 'scatter', // Точечная диаграмма — идеально для одной позиции
+            type: 'scatter',
             data: {
                 datasets: [{
                     label: 'Ваша позиция',
-                    data: [{ x: economicScore, y: socialScore }],
-                    backgroundColor: 'rgba(54, 162, 235, 0.9)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    pointRadius: 12 // Размер точки
+                    data: [{ x: econScore, y: socScore }],
+                    backgroundColor: quadrant.color,
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    pointRadius: 10,
+                    pointHoverRadius: 14
                 }]
             },
             options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: { duration: 800, easing: 'easeOutQuart' },
                 scales: {
                     x: {
                         min: -10, max: 10,
-                        title: { display: true, text: 'Экономика (Лево ← → Право)', font: { size: 14 } },
-                        grid: { color: ctx => ctx.tick.value === 0 ? '#333' : '#e0e0e0', lineWidth: ctx => ctx.tick.value === 0 ? 2 : 1 }
+                        title: {
+                            display: true,
+                            text: 'Экономика: Лево ← → Право',
+                            color: '#8b90a0',
+                            font: { size: 13, weight: '600' }
+                        },
+                        ticks: { color: '#555b70', stepSize: 5 },
+                        grid: {
+                            color: c => c.tick.value === 0 ? '#555b70' : '#2a2e3d',
+                            lineWidth: c => c.tick.value === 0 ? 2 : 1
+                        }
                     },
                     y: {
                         min: -10, max: 10,
-                        title: { display: true, text: 'Социальная (Авторитаризм ← → Либертарианство)', font: { size: 14 } },
-                        grid: { color: ctx => ctx.tick.value === 0 ? '#333' : '#e0e0e0', lineWidth: ctx => ctx.tick.value === 0 ? 2 : 1 }
+                        title: {
+                            display: true,
+                            text: 'Социальная: Авторитаризм ↑ ↓ Либертарианство',
+                            color: '#8b90a0',
+                            font: { size: 13, weight: '600' }
+                        },
+                        ticks: { color: '#555b70', stepSize: 5 },
+                        grid: {
+                            color: c => c.tick.value === 0 ? '#555b70' : '#2a2e3d',
+                            lineWidth: c => c.tick.value === 0 ? 2 : 1
+                        }
                     }
                 },
-                plugins: { legend: { display: false } }
-            }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1a1d27',
+                        borderColor: '#2a2e3d',
+                        borderWidth: 1,
+                        titleColor: '#e6e8ee',
+                        bodyColor: '#8b90a0',
+                        padding: 12,
+                        callbacks: {
+                            label: c => `Координаты: (${c.parsed.x}, ${c.parsed.y})`
+                        }
+                    }
+                }
+            },
+            plugins: [quadrantPlugin]
         });
+
+        // ===== 7. КНОПКА "ПРОЙТИ ЗАНОВО" =====
+        // Замените URL на ссылку вашего теста в Simpoll
+        document.getElementById('restartBtn').href = 'https://simpoll.ru/';
     </script>
 </body>
 </html>
