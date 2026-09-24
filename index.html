@@ -67,8 +67,9 @@
         .error-msg.visible { display: block; }
         #debugInfo {
             margin-top: 12px; padding: 12px; background: #0a0c10;
-            border-radius: 8px; font-family: monospace; font-size: 12px;
+            border-radius: 8px; font-family: monospace; font-size: 11px;
             color: var(--muted); word-break: break-all; display: none;
+            max-height: 150px; overflow-y: auto;
         }
     </style>
 </head>
@@ -111,44 +112,65 @@
     </div>
 
     <script>
+        // ===== 1. СООТВЕТСТВИЕ ТЕКСТА ОТВЕТА И БАЛЛОВ =====
+        // Индекс: 0="Полностью согласен", 1="Скорее согласен", 2="Нейтрально", 3="Скорее не согласен", 4="Полностью не согласен"
+        const answerMap = {
+            'Полностью согласен':   0,
+            'Скорее согласен':      1,
+            'Нейтрально':           2,
+            'Скорее не согласен':   3,
+            'Полностью не согласен':4
+        };
+
+        // ===== 2. МАТРИЦА БАЛЛОВ =====
         const questions = [
-            { q: 1, axis: 'x', scores: [-2, -1, 0, 1, 2] },
-            { q: 2, axis: 'y', scores: [2, 1, 0, -1, -2] },
-            { q: 3, axis: 'x', scores: [2, 1, 0, -1, -2] },
-            { q: 4, axis: 'y', scores: [-2, -1, 0, 1, 2] },
-            { q: 5, axis: 'x', scores: [-2, -1, 0, 1, 2] },
-            { q: 6, axis: 'y', scores: [2, 1, 0, -1, -2] },
-            { q: 7, axis: 'x', scores: [2, 1, 0, -1, -2] },
-            { q: 8, axis: 'y', scores: [-2, -1, 0, 1, 2] },
-            { q: 9, axis: 'x', scores: [2, 1, 0, -1, -2] },
-            { q: 10, axis: 'y', scores: [2, 1, 0, -1, -2] }
+            { q: 1,  axis: 'x', scores: [-2, -1,  0,  1,  2] },
+            { q: 2,  axis: 'y', scores: [ 2,  1,  0, -1, -2] },
+            { q: 3,  axis: 'x', scores: [ 2,  1,  0, -1, -2] },
+            { q: 4,  axis: 'y', scores: [-2, -1,  0,  1,  2] },
+            { q: 5,  axis: 'x', scores: [-2, -1,  0,  1,  2] },
+            { q: 6,  axis: 'y', scores: [ 2,  1,  0, -1, -2] },
+            { q: 7,  axis: 'x', scores: [ 2,  1,  0, -1, -2] },
+            { q: 8,  axis: 'y', scores: [-2, -1,  0,  1,  2] },
+            { q: 9,  axis: 'x', scores: [ 2,  1,  0, -1, -2] },
+            { q: 10, axis: 'y', scores: [ 2,  1,  0, -1, -2] }
         ];
 
-        function getAnswer(qNum) {
+        // ===== 3. ЧТЕНИЕ ОТВЕТОВ =====
+        // Simpoll присылает: sp_answers[N][0]=Текст ответа
+        function getAnswerText(qNum) {
             const params = new URLSearchParams(window.location.search);
-            // Пробуем оба возможных формата ключа
-            let val = params.get(`sp_answers[${qNum}]`);
-            if (val === null) val = params.get(`sp_answers[${qNum}]`);
-            if (val === null) return 2;
-            return parseInt(val, 10);
+            const key = `sp_answers[${qNum}][0]`;
+            return params.get(key);
+        }
+
+        function getAnswerIndex(qNum) {
+            const text = getAnswerText(qNum);
+            if (text === null) return 2; // нет ответа → нейтрально
+            // Декодируем на случай проблем с кодировкой
+            const decoded = decodeURIComponent(text);
+            if (answerMap[decoded] !== undefined) return answerMap[decoded];
+            return 2;
         }
 
         function hasData() {
             const params = new URLSearchParams(window.location.search);
             for (let i = 1; i <= 10; i++) {
-                if (params.has(`sp_answers[${i}]`)) return true;
+                if (params.has(`sp_answers[${i}][0]`)) return true;
             }
             return false;
         }
 
+        // ===== 4. ПОДСЧЁТ =====
         let econScore = 0, socScore = 0;
         questions.forEach(item => {
-            const answerIndex = getAnswer(item.q);
+            const answerIndex = getAnswerIndex(item.q);
             const points = item.scores[answerIndex] || 0;
             if (item.axis === 'x') econScore += points;
             else socScore += points;
         });
 
+        // ===== 5. КВАДРАНТ =====
         function getQuadrant(x, y) {
             if (x >= 0 && y >= 0) return { name: 'Правый авторитарист', color: '#e5484d', desc: 'Вы сочетаете рыночную экономику с сильной государственной вертикалью. Классические примеры: консервативные партии, религиозные правые.' };
             if (x >= 0 && y < 0) return { name: 'Правый либертарианец', color: '#f5a623', desc: 'Вы за свободный рынок и минимальное вмешательство государства в личную жизнь. Ближе всего к классическому либертарианству.' };
@@ -158,6 +180,7 @@
 
         const quadrant = getQuadrant(econScore, socScore);
 
+        // ===== 6. UI =====
         const econEl = document.getElementById('econValue');
         const socEl = document.getElementById('socValue');
         econEl.textContent = (econScore > 0 ? '+' : '') + econScore;
@@ -172,19 +195,27 @@
         badge.style.border = '1px solid ' + quadrant.color + '55';
         document.getElementById('description').innerHTML = `<strong>${quadrant.name}.</strong> ${quadrant.desc}`;
 
+        // ===== 7. ОТЛАДКА =====
         const debugEl = document.getElementById('debugInfo');
-        const currentSearch = window.location.search;
         if (!hasData()) {
             const err = document.getElementById('errorMsg');
             err.textContent = 'Данные теста не найдены. Похоже, вы открыли страницу напрямую, без прохождения теста.';
             err.classList.add('visible');
             debugEl.style.display = 'block';
-            debugEl.textContent = 'URL parameters: ' + (currentSearch || '(пусто)');
+            debugEl.textContent = 'URL: ' + (window.location.search || '(пусто)');
         } else {
             debugEl.style.display = 'block';
-            debugEl.textContent = 'Принятые параметры: ' + currentSearch;
+            let debugText = 'Распознанные ответы:\n';
+            for (let i = 1; i <= 10; i++) {
+                const text = getAnswerText(i);
+                const idx = getAnswerIndex(i);
+                const axis = questions.find(q => q.q === i).axis;
+                debugText += `В${i} (${axis}): "${text}" → индекс ${idx}\n`;
+            }
+            debugEl.textContent = debugText;
         }
 
+        // ===== 8. ГРАФИК =====
         const ctx = document.getElementById('compassChart').getContext('2d');
 
         const quadrantPlugin = {
@@ -232,7 +263,7 @@
             plugins: [quadrantPlugin]
         });
 
-        document.getElementById('restartBtn').href = 'https://simpoll.ru/';
+        document.getElementById('restartBtn').href = 'http://simpoll.ru/run/survey/8079999d';
     </script>
 </body>
 </html>
