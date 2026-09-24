@@ -7,197 +7,69 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg: #0f1117;
-            --card: #1a1d27;
-            --text: #e6e8ee;
-            --muted: #8b90a0;
-            --accent: #4a9eff;
-            --grid: #2a2e3d;
-            --axis: #555b70;
-            --red: #e5484d;
-            --green: #30a46c;
-            --yellow: #f5a623;
-            --purple: #8e4ec6;
+            --bg: #0f1117; --card: #1a1d27; --text: #e6e8ee;
+            --muted: #8b90a0; --accent: #4a9eff; --grid: #2a2e3d;
+            --red: #e5484d; --green: #30a46c; --yellow: #f5a623; --purple: #8e4ec6;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 24px 16px;
-            line-height: 1.5;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 24px 16px; line-height: 1.5;
         }
-
-        .header {
-            text-align: center;
-            margin-bottom: 24px;
-            max-width: 720px;
-        }
-
+        .header { text-align: center; margin-bottom: 24px; max-width: 720px; }
         .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
+            font-size: 28px; font-weight: 700; margin-bottom: 8px;
             background: linear-gradient(135deg, #4a9eff, #8e4ec6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-
-        .header p {
-            color: var(--muted);
-            font-size: 15px;
-        }
-
+        .header p { color: var(--muted); font-size: 15px; }
         .layout {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 24px;
-            width: 100%;
-            max-width: 1100px;
-            align-items: stretch;
+            display: grid; grid-template-columns: 1fr 320px; gap: 24px;
+            width: 100%; max-width: 1100px; align-items: stretch;
         }
-
-        @media (max-width: 900px) {
-            .layout { grid-template-columns: 1fr; }
-        }
-
-        .card {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 24px;
-            border: 1px solid var(--grid);
-        }
-
-        /* График: фиксированная высота, растягивается по ширине */
+        @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+        .card { background: var(--card); border-radius: 16px; padding: 24px; border: 1px solid var(--grid); }
         .chart-card {
-            position: relative;
-            min-height: 520px;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: relative; min-height: 520px; padding: 16px;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        .chart-card canvas {
-            width: 100% !important;
-            height: 100% !important;
-            max-height: 560px;
-        }
-
-        .result-card h2 {
-            font-size: 18px;
-            margin-bottom: 16px;
-            font-weight: 600;
-        }
-
+        .chart-card canvas { width: 100% !important; height: 100% !important; max-height: 560px; }
+        .result-card h2 { font-size: 18px; margin-bottom: 16px; font-weight: 600; }
         .quadrant-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 999px;
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 16px;
+            display: inline-block; padding: 8px 16px; border-radius: 999px;
+            font-size: 15px; font-weight: 600; margin-bottom: 16px;
         }
-
-        .coords {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .coord-item {
-            background: var(--bg);
-            border-radius: 12px;
-            padding: 12px 16px;
-            border: 1px solid var(--grid);
-        }
-
-        .coord-item .label {
-            font-size: 12px;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .coord-item .value {
-            font-size: 22px;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-        }
-
+        .coords { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .coord-item { background: var(--bg); border-radius: 12px; padding: 12px 16px; border: 1px solid var(--grid); }
+        .coord-item .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .coord-item .value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
         .coord-item .value.positive { color: var(--accent); }
         .coord-item .value.negative { color: var(--red); }
-        .coord-item .value.neutral  { color: var(--muted); }
-
-        .description {
-            font-size: 14px;
-            color: var(--muted);
-            line-height: 1.6;
-            padding-top: 16px;
-            border-top: 1px solid var(--grid);
-        }
-
+        .coord-item .value.neutral { color: var(--muted); }
+        .description { font-size: 14px; color: var(--muted); line-height: 1.6; padding-top: 16px; border-top: 1px solid var(--grid); }
         .description strong { color: var(--text); }
-
-        .actions {
-            margin-top: 20px;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
+        .actions { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
         .btn {
-            flex: 1;
-            min-width: 140px;
-            padding: 12px 20px;
-            border-radius: 10px;
-            border: none;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-            transition: opacity 0.15s, transform 0.1s;
+            flex: 1; min-width: 140px; padding: 12px 20px; border-radius: 10px;
+            border: none; font-size: 15px; font-weight: 600; cursor: pointer;
+            text-decoration: none; text-align: center; transition: opacity 0.15s;
         }
-
         .btn:hover { opacity: 0.9; }
-        .btn:active { transform: scale(0.98); }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--text);
-            border: 1px solid var(--grid);
-        }
-
-        .footer {
-            margin-top: 32px;
-            color: var(--muted);
-            font-size: 13px;
-            text-align: center;
-            max-width: 720px;
-        }
-
+        .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--grid); }
+        .footer { margin-top: 32px; color: var(--muted); font-size: 13px; text-align: center; max-width: 720px; }
         .error-msg {
-            background: rgba(229, 72, 77, 0.1);
-            border: 1px solid var(--red);
-            color: var(--red);
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            margin-bottom: 16px;
-            display: none;
+            background: rgba(229, 72, 77, 0.1); border: 1px solid var(--red);
+            color: var(--red); padding: 16px; border-radius: 12px;
+            font-size: 14px; margin-bottom: 16px; display: none;
         }
-
         .error-msg.visible { display: block; }
+        #debugInfo {
+            margin-top: 12px; padding: 12px; background: #0a0c10;
+            border-radius: 8px; font-family: monospace; font-size: 12px;
+            color: var(--muted); word-break: break-all; display: none;
+        }
     </style>
 </head>
 <body>
@@ -214,11 +86,8 @@
 
         <div class="card result-card">
             <h2>Ваш результат</h2>
-
             <div class="error-msg" id="errorMsg"></div>
-
             <div id="quadrantBadge" class="quadrant-badge"></div>
-
             <div class="coords">
                 <div class="coord-item">
                     <div class="label">Экономика</div>
@@ -229,12 +98,11 @@
                     <div class="value" id="socValue">0</div>
                 </div>
             </div>
-
             <div class="description" id="description"></div>
-
             <div class="actions">
                 <a href="#" class="btn btn-secondary" id="restartBtn">Пройти заново</a>
             </div>
+            <div id="debugInfo"></div>
         </div>
     </div>
 
@@ -243,25 +111,24 @@
     </div>
 
     <script>
-        // ===== 1. МАТРИЦА БАЛЛОВ =====
         const questions = [
-            { q: 1,  axis: 'x', scores: [-2, -1,  0,  1,  2] },
-            { q: 2,  axis: 'y', scores: [ 2,  1,  0, -1, -2] },
-            { q: 3,  axis: 'x', scores: [ 2,  1,  0, -1, -2] },
-            { q: 4,  axis: 'y', scores: [-2, -1,  0,  1,  2] },
-            { q: 5,  axis: 'x', scores: [-2, -1,  0,  1,  2] },
-            { q: 6,  axis: 'y', scores: [ 2,  1,  0, -1, -2] },
-            { q: 7,  axis: 'x', scores: [ 2,  1,  0, -1, -2] },
-            { q: 8,  axis: 'y', scores: [-2, -1,  0,  1,  2] },
-            { q: 9,  axis: 'x', scores: [ 2,  1,  0, -1, -2] },
-            { q: 10, axis: 'y', scores: [ 2,  1,  0, -1, -2] }
+            { q: 1, axis: 'x', scores: [-2, -1, 0, 1, 2] },
+            { q: 2, axis: 'y', scores: [2, 1, 0, -1, -2] },
+            { q: 3, axis: 'x', scores: [2, 1, 0, -1, -2] },
+            { q: 4, axis: 'y', scores: [-2, -1, 0, 1, 2] },
+            { q: 5, axis: 'x', scores: [-2, -1, 0, 1, 2] },
+            { q: 6, axis: 'y', scores: [2, 1, 0, -1, -2] },
+            { q: 7, axis: 'x', scores: [2, 1, 0, -1, -2] },
+            { q: 8, axis: 'y', scores: [-2, -1, 0, 1, 2] },
+            { q: 9, axis: 'x', scores: [2, 1, 0, -1, -2] },
+            { q: 10, axis: 'y', scores: [2, 1, 0, -1, -2] }
         ];
 
-        // ===== 2. ЧТЕНИЕ ОТВЕТОВ =====
         function getAnswer(qNum) {
             const params = new URLSearchParams(window.location.search);
-            const key = `sp_answers[${qNum}]`;
-            const val = params.get(key);
+            // Пробуем оба возможных формата ключа
+            let val = params.get(`sp_answers[${qNum}]`);
+            if (val === null) val = params.get(`sp_answers[${qNum}]`);
             if (val === null) return 2;
             return parseInt(val, 10);
         }
@@ -274,10 +141,7 @@
             return false;
         }
 
-        // ===== 3. ПОДСЧЁТ =====
-        let econScore = 0;
-        let socScore = 0;
-
+        let econScore = 0, socScore = 0;
         questions.forEach(item => {
             const answerIndex = getAnswer(item.q);
             const points = item.scores[answerIndex] || 0;
@@ -285,39 +149,19 @@
             else socScore += points;
         });
 
-        // ===== 4. КВАДРАНТ =====
         function getQuadrant(x, y) {
-            if (x >= 0 && y >= 0) return {
-                name: 'Правый авторитарист',
-                color: '#e5484d',
-                desc: 'Вы сочетаете рыночную экономику с сильной государственной вертикалью. Классические примеры: консервативные партии, религиозные правые.'
-            };
-            if (x >= 0 && y < 0) return {
-                name: 'Правый либертарианец',
-                color: '#f5a623',
-                desc: 'Вы за свободный рынок и минимальное вмешательство государства в личную жизнь. Ближе всего к классическому либертарианству.'
-            };
-            if (x < 0 && y >= 0) return {
-                name: 'Левый авторитарист',
-                color: '#8e4ec6',
-                desc: 'Вы за государственное регулирование экономики и сильную власть. Исторически близко к социализму авторитарного толка.'
-            };
-            return {
-                name: 'Левый либертарианец',
-                color: '#30a46c',
-                desc: 'Вы за равенство и социальную справедливость при максимальной личной свободе. Ближе всего к анархо-коммунизму или демократическому социализму.'
-            };
+            if (x >= 0 && y >= 0) return { name: 'Правый авторитарист', color: '#e5484d', desc: 'Вы сочетаете рыночную экономику с сильной государственной вертикалью. Классические примеры: консервативные партии, религиозные правые.' };
+            if (x >= 0 && y < 0) return { name: 'Правый либертарианец', color: '#f5a623', desc: 'Вы за свободный рынок и минимальное вмешательство государства в личную жизнь. Ближе всего к классическому либертарианству.' };
+            if (x < 0 && y >= 0) return { name: 'Левый авторитарист', color: '#8e4ec6', desc: 'Вы за государственное регулирование экономики и сильную власть. Исторически близко к социализму авторитарного толка.' };
+            return { name: 'Левый либертарианец', color: '#30a46c', desc: 'Вы за равенство и социальную справедливость при максимальной личной свободе. Ближе всего к анархо-коммунизму или демократическому социализму.' };
         }
 
         const quadrant = getQuadrant(econScore, socScore);
 
-        // ===== 5. UI =====
         const econEl = document.getElementById('econValue');
         const socEl = document.getElementById('socValue');
-
         econEl.textContent = (econScore > 0 ? '+' : '') + econScore;
         socEl.textContent = (socScore > 0 ? '+' : '') + socScore;
-
         econEl.className = 'value ' + (econScore > 0 ? 'positive' : econScore < 0 ? 'negative' : 'neutral');
         socEl.className = 'value ' + (socScore > 0 ? 'positive' : socScore < 0 ? 'negative' : 'neutral');
 
@@ -326,17 +170,21 @@
         badge.style.background = quadrant.color + '22';
         badge.style.color = quadrant.color;
         badge.style.border = '1px solid ' + quadrant.color + '55';
+        document.getElementById('description').innerHTML = `<strong>${quadrant.name}.</strong> ${quadrant.desc}`;
 
-        document.getElementById('description').innerHTML =
-            `<strong>${quadrant.name}.</strong> ${quadrant.desc}`;
-
+        const debugEl = document.getElementById('debugInfo');
+        const currentSearch = window.location.search;
         if (!hasData()) {
             const err = document.getElementById('errorMsg');
             err.textContent = 'Данные теста не найдены. Похоже, вы открыли страницу напрямую, без прохождения теста.';
             err.classList.add('visible');
+            debugEl.style.display = 'block';
+            debugEl.textContent = 'URL parameters: ' + (currentSearch || '(пусто)');
+        } else {
+            debugEl.style.display = 'block';
+            debugEl.textContent = 'Принятые параметры: ' + currentSearch;
         }
 
-        // ===== 6. ГРАФИК =====
         const ctx = document.getElementById('compassChart').getContext('2d');
 
         const quadrantPlugin = {
@@ -344,25 +192,13 @@
             beforeDraw(chart) {
                 const { ctx, chartArea, scales } = chart;
                 if (!chartArea) return;
-
                 const x0 = scales.x.getPixelForValue(0);
                 const y0 = scales.y.getPixelForValue(0);
-
-                ctx.save();
-                ctx.globalAlpha = 0.08;
-
-                ctx.fillStyle = '#e5484d';
-                ctx.fillRect(x0, chartArea.top, chartArea.right - x0, y0 - chartArea.top);
-
-                ctx.fillStyle = '#f5a623';
-                ctx.fillRect(x0, y0, chartArea.right - x0, chartArea.bottom - y0);
-
-                ctx.fillStyle = '#8e4ec6';
-                ctx.fillRect(chartArea.left, chartArea.top, x0 - chartArea.left, y0 - chartArea.top);
-
-                ctx.fillStyle = '#30a46c';
-                ctx.fillRect(chartArea.left, y0, x0 - chartArea.left, chartArea.bottom - y0);
-
+                ctx.save(); ctx.globalAlpha = 0.08;
+                ctx.fillStyle = '#e5484d'; ctx.fillRect(x0, chartArea.top, chartArea.right - x0, y0 - chartArea.top);
+                ctx.fillStyle = '#f5a623'; ctx.fillRect(x0, y0, chartArea.right - x0, chartArea.bottom - y0);
+                ctx.fillStyle = '#8e4ec6'; ctx.fillRect(chartArea.left, chartArea.top, x0 - chartArea.left, y0 - chartArea.top);
+                ctx.fillStyle = '#30a46c'; ctx.fillRect(chartArea.left, y0, x0 - chartArea.left, chartArea.bottom - y0);
                 ctx.restore();
             }
         };
@@ -381,64 +217,22 @@
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 animation: { duration: 800, easing: 'easeOutQuart' },
-                layout: {
-                    padding: { top: 10, right: 20, bottom: 10, left: 10 }
-                },
+                layout: { padding: { top: 10, right: 20, bottom: 10, left: 10 } },
                 scales: {
-                    x: {
-                        min: -10, max: 10,
-                        title: {
-                            display: true,
-                            text: 'Экономика: Лево ← → Право',
-                            color: '#8b90a0',
-                            font: { size: 14, weight: '600' },
-                            padding: { top: 12, bottom: 4 }
-                        },
-                        ticks: { color: '#555b70', stepSize: 5, font: { size: 12 } },
-                        grid: {
-                            color: c => c.tick.value === 0 ? '#555b70' : '#2a2e3d',
-                            lineWidth: c => c.tick.value === 0 ? 2 : 1
-                        }
-                    },
-                    y: {
-                        min: -10, max: 10,
-                        title: {
-                            display: true,
-                            text: 'Социальная: Авторитаризм ↑ ↓ Либертарианство',
-                            color: '#8b90a0',
-                            font: { size: 14, weight: '600' },
-                            padding: { bottom: 12 }
-                        },
-                        ticks: { color: '#555b70', stepSize: 5, font: { size: 12 } },
-                        grid: {
-                            color: c => c.tick.value === 0 ? '#555b70' : '#2a2e3d',
-                            lineWidth: c => c.tick.value === 0 ? 2 : 1
-                        }
-                    }
+                    x: { min: -10, max: 10, title: { display: true, text: 'Экономика: Лево ← → Право', color: '#8b90a0', font: { size: 14, weight: '600' }, padding: { top: 12, bottom: 4 } }, ticks: { color: '#555b70', stepSize: 5, font: { size: 12 } }, grid: { color: c => c.tick.value === 0 ? '#555b70' : '#2a2e3d', lineWidth: c => c.tick.value === 0 ? 2 : 1 } },
+                    y: { min: -10, max: 10, title: { display: true, text: 'Социальная: Авторитаризм ↑ ↓ Либертарианство', color: '#8b90a0', font: { size: 14, weight: '600' }, padding: { bottom: 12 } }, ticks: { color: '#555b70', stepSize: 5, font: { size: 12 } }, grid: { color: c => c.tick.value === 0 ? '#555b70' : '#2a2e3d', lineWidth: c => c.tick.value === 0 ? 2 : 1 } }
                 },
                 plugins: {
                     legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#1a1d27',
-                        borderColor: '#2a2e3d',
-                        borderWidth: 1,
-                        titleColor: '#e6e8ee',
-                        bodyColor: '#8b90a0',
-                        padding: 12,
-                        callbacks: {
-                            label: c => `Координаты: (${c.parsed.x}, ${c.parsed.y})`
-                        }
-                    }
+                    tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2e3d', borderWidth: 1, titleColor: '#e6e8ee', bodyColor: '#8b90a0', padding: 12, callbacks: { label: c => `Координаты: (${c.parsed.x}, ${c.parsed.y})` } }
                 }
             },
             plugins: [quadrantPlugin]
         });
 
-        // ===== 7. КНОПКА "ПРОЙТИ ЗАНОВО" =====
-        document.getElementById('restartBtn').href = 'http://simpoll.ru/run/survey/8079999d';
+        document.getElementById('restartBtn').href = 'https://simpoll.ru/';
     </script>
 </body>
 </html>
